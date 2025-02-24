@@ -7,6 +7,7 @@ import { JWT_EXPIRES_IN, JWT_SECRET } from "../config/env.js";
 const signUp = async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
+  console.log(req.body)
   try {
     const { name, email, mobile, kind, pin, nid } = req.body;
     const existingUser = await User.findOne({
@@ -20,8 +21,7 @@ const signUp = async (req, res, next) => {
     }
 
     //hash pin
-    const salt = await bcrypt.genSalt(10);
-    const hashedPin = await bcrypt.hash(pin, salt);
+    const hashedPin = await bcrypt.hash(pin, 10);
     const newUser = new User({
       name,
       email,
@@ -61,6 +61,11 @@ const signIn = async (req, res, next) => {
       error.statusCode = 404;
       throw error;
     }
+    if(user.token){
+      const error = new Error("User Already Logged in with another device")
+      error.statusCode = 403
+      throw error
+    }
 
     const isPasswordValid = await bcrypt.compare(pin, user.pin);
 
@@ -73,17 +78,20 @@ const signIn = async (req, res, next) => {
       expiresIn: JWT_EXPIRES_IN,
     });
 
+    const updateUserToken = await User.findOneAndUpdate({_id:user._id,}, {token: token}, {new:true})
+
     res.status(200).json({
       success: true,
       message: "User signed in successfully",
       data: {
         token,
-        user,
+        updateUserToken,
       },
     });
   } catch (err) {
     next(err);
   }
 };
+
 
 export { signUp, signIn };
