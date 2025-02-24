@@ -13,7 +13,9 @@ const signUp = async (req, res, next) => {
       nid: nid,
     });
     if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
+      const error = new Error("User already exists");
+      error.statusCode = 409;
+      throw error;
     }
   } catch (error) {
     await session.abortTransaction();
