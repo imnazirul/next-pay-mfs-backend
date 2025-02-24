@@ -10,7 +10,6 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: [true, "Email is required"],
-    unique: true,
     trim: true,
     lowercase: true,
     match: [
@@ -21,16 +20,14 @@ const userSchema = new mongoose.Schema({
   mobile: {
     type: String,
     required: [true, "Mobile is required"],
-    unique: true,
     trim: true,
     // match: [/^[6-9]\d{9}$/, "Please fill a valid mobile number"],
   },
   nid: {
     type: String,
     required: [true, "NID is required"],
-    unique: true,
     trim: true,
-    match: [/^[0-9]{10}$/, "Please fill a valid NID"],
+    // match: [/^[0-9]{10}$/, "Please fill a valid NID"],
   },
   kind: {
     type: String,
@@ -46,6 +43,7 @@ const userSchema = new mongoose.Schema({
     type: String,
   }
 }, {timestamps: true});
+
 
 
 export default mongoose.model("User", userSchema);
