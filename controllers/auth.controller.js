@@ -7,7 +7,6 @@ import { JWT_EXPIRES_IN, JWT_SECRET } from "../config/env.js";
 const signUp = async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
-  console.log(req.body);
   try {
     const { name, email, mobile, kind, pin, nid } = req.body;
     const existingUser = await User.findOne({
@@ -82,14 +81,14 @@ const signIn = async (req, res, next) => {
       { _id: user._id },
       { token: token },
       { new: true }
-    );
+    ).select("-pin")
 
     res.status(200).json({
       success: true,
       message: "User signed in successfully",
       data: {
         token,
-        updateUserToken,
+        user: updateUserToken,
       },
     });
   } catch (err) {
@@ -99,7 +98,22 @@ const signIn = async (req, res, next) => {
 
 const signOut = async (req, res, next) => {
   try {
-    const { user } = req;
+    const { identifier, pin } = req.body;
+    const user = await User.findOne({
+      $or: [{ email: identifier }, { mobile: identifier }],
+    });
+    if (!user) {
+      const error = new Error("User Not Found");
+      error.statusCode = 404;
+      throw error;
+    }
+    const isPasswordValid = await bcrypt.compare(pin, user.pin);
+
+    if (!isPasswordValid) {
+      const error = new Error("Invalid Password");
+      error.statusCode = 401;
+      throw error;
+    }
     // eslint-disable-next-line no-unused-vars
     const updateUserToken = await User.findOneAndUpdate(
       { _id: user._id },

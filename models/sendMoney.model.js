@@ -2,13 +2,13 @@ import mongoose from "mongoose";
 
 const sendMoneySchema = new mongoose.Schema({
   sender: {
-    type: mongoose.Schema.Types.ObjectId,
+    user_id: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: [true, "Sender is required"],
     index: true,
   },
   receiver: {
-    type: mongoose.Schema.Types.ObjectId,
+    user_id: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: [true, "Receiver is required"],
     index: true,
