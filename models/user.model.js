@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema({
     required: [true, "Mobile is required"],
     unique: true,
     trim: true,
-    match: [/^[6-9]\d{9}$/, "Please fill a valid mobile number"],
+    // match: [/^[6-9]\d{9}$/, "Please fill a valid mobile number"],
   },
   nid: {
     type: String,
@@ -39,10 +39,11 @@ const userSchema = new mongoose.Schema({
     default: "USER",
   },
   pin: {
-    type: Number,
+    type: String,
     required: [true, "PIN is required"],
-    minLength: [5, "PIN must be at least 5 characters"],
-    maxLength: [5, "PIN must be at most 5 characters"],
+  },
+  token: {
+    type: String,
   }
 }, {timestamps: true});
 
