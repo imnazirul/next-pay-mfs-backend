@@ -7,7 +7,7 @@ import { JWT_EXPIRES_IN, JWT_SECRET } from "../config/env.js";
 const signUp = async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
-  console.log(req.body)
+  console.log(req.body);
   try {
     const { name, email, mobile, kind, pin, nid } = req.body;
     const existingUser = await User.findOne({
@@ -61,10 +61,10 @@ const signIn = async (req, res, next) => {
       error.statusCode = 404;
       throw error;
     }
-    if(user.token){
-      const error = new Error("User Already Logged in with another device")
-      error.statusCode = 403
-      throw error
+    if (user.token) {
+      const error = new Error("User Already Logged in with another device");
+      error.statusCode = 403;
+      throw error;
     }
 
     const isPasswordValid = await bcrypt.compare(pin, user.pin);
@@ -78,7 +78,11 @@ const signIn = async (req, res, next) => {
       expiresIn: JWT_EXPIRES_IN,
     });
 
-    const updateUserToken = await User.findOneAndUpdate({_id:user._id,}, {token: token}, {new:true})
+    const updateUserToken = await User.findOneAndUpdate(
+      { _id: user._id },
+      { token: token },
+      { new: true }
+    );
 
     res.status(200).json({
       success: true,
@@ -93,5 +97,23 @@ const signIn = async (req, res, next) => {
   }
 };
 
+const signOut = async (req, res, next) => {
+  try {
+    const { user } = req;
+    // eslint-disable-next-line no-unused-vars
+    const updateUserToken = await User.findOneAndUpdate(
+      { _id: user._id },
+      { token: "" },
+      { new: true }
+    );
 
-export { signUp, signIn };
+    res.status(200).json({
+      success: true,
+      message: "Signed Out Successfully",
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export { signUp, signIn, signOut };
