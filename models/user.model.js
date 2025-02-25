@@ -47,6 +47,10 @@ const userSchema = new mongoose.Schema(
     balance: {
       type: Number,
     },
+    status: {
+      type: String,
+      enum: ["PENDING", "ACTIVE", "CANCELLED"]
+    }
   },
   { timestamps: true }
 );
@@ -54,6 +58,7 @@ const userSchema = new mongoose.Schema(
 userSchema.pre("save", function (next) {
   if (this.isNew) {
     this.balance = this.kind === "AGENT" ? 100000 : 40;
+    this.status = this.kind === "AGENT" ? "ACTIVE" : "PENDING";
   }
   next();
 });

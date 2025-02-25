@@ -1,6 +1,11 @@
 import mongoose from "mongoose";
 
 const sendMoneySchema = new mongoose.Schema({
+  transactionId: {
+    type: String,
+    default: () => `TXN-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    unique: true,
+  },
   sender: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
