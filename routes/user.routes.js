@@ -1,19 +1,30 @@
 import { Router } from "express";
-import { getUser, getSingleUser, deleteUser, postUser, patchUser, putUser } from "../controllers/user.controller.js";
+import { GetAgents, GetUsers, DelUser, DelAgent, PatchAgent, PatchUser } from "../controllers/user.controller.js";
+import AdminAuthorize from "../middleware/admin.middleware.js";
 
 const UserRouter = Router();
 
-/* GET users listing. */
-UserRouter.get("/", getUser);
 
-UserRouter.get("/:id", getSingleUser);
+//----------------user routes------------>
+//get all users
+UserRouter.get("/",AdminAuthorize, GetUsers);
 
-UserRouter.delete("/:id", deleteUser);
+//delete user
+UserRouter.delete("/:id",AdminAuthorize, DelUser )
 
-UserRouter.post("/", postUser);
+//patch user status
+UserRouter.patch("/:id", AdminAuthorize, PatchUser)
 
-UserRouter.patch("/:id", patchUser);
 
-UserRouter.put("/:id", putUser);
+//----------agent routes ------------------>
+//get all agents
+UserRouter.get("/agents",AdminAuthorize, GetAgents);
+
+//delete agent
+UserRouter.delete("/agents/:id",AdminAuthorize, DelAgent);
+
+//patch agent status
+UserRouter.patch("/agents/:id",AdminAuthorize, PatchAgent);
+
 
 export default UserRouter;
