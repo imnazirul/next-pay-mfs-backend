@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 
 const sendMoneySchema = new mongoose.Schema({
+  kind: {
+    type: String,
+    default: "SEND_MONEY"
+  },
   transactionId: {
     type: String,
     default: () => `TXN-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -32,6 +36,6 @@ const sendMoneySchema = new mongoose.Schema({
     type: Number,
     required: [true, "Fee is required"],
   },
-});
+}, { timestamps: true });
 
 export default mongoose.model("SendMoney", sendMoneySchema);

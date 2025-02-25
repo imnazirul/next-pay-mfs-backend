@@ -10,7 +10,13 @@ const sendMoney = async (req, res, next) => {
   session.startTransaction();
   try {
     const { receiver_mobile, total, send_amount, fee, pin } = req.body;
-    const { _id } = req.user;
+    const { _id, mobile } = req.user;
+
+    if(receiver_mobile == mobile){
+      const error = new Error("You Can't Make Transaction in Your Own Account")
+      error.statusCode = 404
+      throw error
+    }
 
     if (send_amount < 50) {
       const error = new Error("Minimum Send Amount is 50");
@@ -59,7 +65,14 @@ const sendMoney = async (req, res, next) => {
     //update receiver balance
     await User.findOneAndUpdate(
       { _id: Receiver._id },
-      { balance: Number(req.user.balance) + Number(total) },
+      { balance: Number(Receiver.balance) + Number(send_amount) },
+      { new: true }
+    );
+
+    //update admin revenue
+    await User.findOneAndUpdate(
+      { kind: "ADMIN" },
+      { $inc: { balance: Number(fee) } },
       { new: true }
     );
 
@@ -85,8 +98,12 @@ const cashIn = async (req, res, next) => {
   session.startTransaction();
   try {
     const { receiver_mobile, amount, pin } = req.body;
-    const { _id } = req.user;
-
+    const { _id , mobile} = req.user;
+    if(receiver_mobile == mobile){
+      const error = new Error("You Can't Make Transaction in Your Own Account")
+      error.statusCode = 404
+      throw error
+    }
     if (amount < 10) {
       const error = new Error("Minimum Cash In Amount is 10");
       error.statusCode = 404;
@@ -118,7 +135,7 @@ const cashIn = async (req, res, next) => {
       sender: _id,
       receiver: Receiver._id,
       amount: amount,
-      agent: _id
+      agent: _id,
     });
 
     //update sender balance
@@ -152,19 +169,25 @@ const cashIn = async (req, res, next) => {
   }
 };
 
-const cashOut = async(req,res,next)=>{
+const cashOut = async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
     const { agent_mobile, total, amount, fee, pin } = req.body;
-    const { _id } = req.user;
+    const { _id, mobile } = req.user;
 
+
+    if(agent_mobile == mobile){
+      const error = new Error("You Can't Make Transaction in Your Own Account")
+      error.statusCode = 404
+      throw error
+    }
+    
     if (amount < 50) {
       const error = new Error("Minimum Cash Out Amount is 50");
       error.statusCode = 404;
       throw error;
     }
-
 
     //AGENT CHECK
     const Agent = await User.findOne({ mobile: agent_mobile });
@@ -173,10 +196,10 @@ const cashOut = async(req,res,next)=>{
       error.statusCode = 404;
       throw error;
     }
-    if(Agent.kind !=="AGENT" || Agent.status !=="ACTIVE"){
-      const error = new Error("Please Enter Valid Agent Mobile")
-      error.statusCode = 400
-      throw error
+    if (Agent.kind !== "AGENT" || Agent.status !== "ACTIVE") {
+      const error = new Error("Please Enter Valid Agent Mobile");
+      error.statusCode = 400;
+      throw error;
     }
 
     //BALANCE CHECK
@@ -197,8 +220,8 @@ const cashOut = async(req,res,next)=>{
       throw error;
     }
 
-    const agent_credit = (1/1.5) * fee
-    const admin_credit = (0.5/1.5) * fee
+    const agent_credit = (1 / 1.5) * fee;
+    const admin_credit = (0.5 / 1.5) * fee;
 
     const newTransaction = new CashOut({
       sender: _id,
@@ -207,7 +230,7 @@ const cashOut = async(req,res,next)=>{
       amount: amount,
       fee: fee,
       agentCredit: agent_credit,
-      adminCredit: admin_credit
+      adminCredit: admin_credit,
     });
 
     //update sender balance
@@ -220,14 +243,14 @@ const cashOut = async(req,res,next)=>{
     //update agent balance
     await User.findOneAndUpdate(
       { _id: Agent._id },
-      { balance: Number(Agent.balance) + Number(total) + Number(agent_credit) },
+      { balance: Number(Agent.balance) + (Number(amount) + Number(agent_credit)) },
       { new: true }
     );
 
     // update admin revenue
     await User.findOneAndUpdate(
       { kind: "ADMIN" },
-      { $inc: {balance:  Number(admin_credit)} },
+      { $inc: { balance: Number(admin_credit) } },
       { new: true }
     );
 
@@ -246,6 +269,59 @@ const cashOut = async(req,res,next)=>{
     session.endSession();
     next(error);
   }
+};
+
+const GetUserTransactions = async (req, res, next) => {
+  try {
+    const { _id } = req.user;
+    const [sendMoneyTransactions, cashInTransactions, cashOutTransactions] =
+      await Promise.all([
+        SendMoney.find({ sender: _id }).lean(),
+        CashIn.find({ receiver: _id }).lean(),
+        CashOut.find({ sender: _id }).lean(),
+      ]);
+
+    const Transactions = [
+      ...sendMoneyTransactions,
+      ...cashInTransactions,
+      ...cashOutTransactions,
+    ];
+    Transactions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    res.status(200).json({
+      success: true,
+      message: "All Transactions for Your Account",
+      data: Transactions,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const GetAllTransactions = async(req,res, next)=>{
+  try {
+    const [sendMoneyTransactions, cashInTransactions, cashOutTransactions] =
+      await Promise.all([
+        SendMoney.find().lean(),
+        CashIn.find().lean(),
+        CashOut.find().lean(),
+      ]);
+
+    const Transactions = [
+      ...sendMoneyTransactions,
+      ...cashInTransactions,
+      ...cashOutTransactions,
+    ];
+    Transactions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    res.status(200).json({
+      success: true,
+      message: "All Transactions Of MFS",
+      data: Transactions,
+    });
+  } catch (error) {
+    next(error);
+  }
 }
 
-export { sendMoney, cashIn, cashOut  };
+export { sendMoney, cashIn, cashOut, GetUserTransactions, GetAllTransactions };

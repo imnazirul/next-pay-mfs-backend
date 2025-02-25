@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 
 const cashOutSchema = new mongoose.Schema({
+  kind: {
+    type: String,
+    default: "CASH_OUT"
+  },
   transactionId: {
     type: String,
     default: () => `TXN-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -36,6 +40,6 @@ const cashOutSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-});
+}, { timestamps: true });
 
 export default mongoose.model("CashOut", cashOutSchema);
