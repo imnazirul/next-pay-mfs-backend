@@ -3,6 +3,7 @@ import SendMoney from "../models/sendMoney.model.js";
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import CashIn from "../models/cashIn.model.js";
+import CashOut from "../models/cashOut.model.js";
 
 const sendMoney = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -151,4 +152,100 @@ const cashIn = async (req, res, next) => {
   }
 };
 
-export { sendMoney, cashIn };
+const cashOut = async(req,res,next)=>{
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const { agent_mobile, total, amount, fee, pin } = req.body;
+    const { _id } = req.user;
+
+    if (amount < 50) {
+      const error = new Error("Minimum Cash Out Amount is 50");
+      error.statusCode = 404;
+      throw error;
+    }
+
+
+    //AGENT CHECK
+    const Agent = await User.findOne({ mobile: agent_mobile });
+    if (!Agent) {
+      const error = new Error("Agent Not Found");
+      error.statusCode = 404;
+      throw error;
+    }
+    if(Agent.kind !=="AGENT" || Agent.status !=="ACTIVE"){
+      const error = new Error("Please Enter Valid Agent Mobile")
+      error.statusCode = 400
+      throw error
+    }
+
+    //BALANCE CHECK
+    if (
+      Number(total) > Number(req.user.balance) ||
+      Number(amount) > Number(req.user.balance)
+    ) {
+      const error = new Error("Insufficient Balance");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    //PIN CHECK
+    const isPinValid = await bcrypt.compare(pin, req.user.pin);
+    if (!isPinValid) {
+      const error = new Error("Invalid Pin");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    const agent_credit = (1/1.5) * fee
+    const admin_credit = (0.5/1.5) * fee
+
+    const newTransaction = new CashOut({
+      sender: _id,
+      agent: Agent._id,
+      total: total,
+      amount: amount,
+      fee: fee,
+      agentCredit: agent_credit,
+      adminCredit: admin_credit
+    });
+
+    //update sender balance
+    await User.findOneAndUpdate(
+      { _id: req.user._id },
+      { balance: Number(req.user.balance - total) },
+      { new: true }
+    );
+
+    //update agent balance
+    await User.findOneAndUpdate(
+      { _id: Agent._id },
+      { balance: Number(Agent.balance) + Number(total) + Number(agent_credit) },
+      { new: true }
+    );
+
+    // update admin revenue
+    await User.findOneAndUpdate(
+      { kind: "ADMIN" },
+      { $inc: {balance:  Number(admin_credit)} },
+      { new: true }
+    );
+
+    await newTransaction.save({ session });
+    await session.commitTransaction();
+
+    session.endSession();
+
+    res.status(201).json({
+      success: true,
+      message: "Cash Out to Agent Successfully",
+      data: newTransaction,
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
+}
+
+export { sendMoney, cashIn, cashOut  };
