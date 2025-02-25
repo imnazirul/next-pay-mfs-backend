@@ -17,10 +17,10 @@ const AgentAuthorize = async (req, res, next) => {
 
     const user = await User.findOne({ email: decoded.email });
     if (!user) return res.status(401).json({ message: "Unauthorized" });
-    if (user.kind !== "AGENT" && user.status !== "ACTIVE")
+    if (user.kind !== "AGENT" || user.status === "PENDING")
       return res
         .status(401)
-        .json({success:false, message: "User is not Authorized for Agent Action" });
+        .json({success:false, message: "This User is Not Authorized for Agent Action" });
     req.user = user;
     next();
   } catch (err) {

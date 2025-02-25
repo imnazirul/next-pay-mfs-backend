@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import SendMoney from "../models/sendMoney.model.js";
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
+import CashIn from "../models/cashIn.model.js";
 
 const sendMoney = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -47,10 +48,17 @@ const sendMoney = async (req, res, next) => {
       fee: fee,
     });
 
-    // eslint-disable-next-line no-unused-vars
-    const UpdateSenderBalance = await User.findOneAndUpdate(
+    //update sender balance
+    await User.findOneAndUpdate(
       { _id: req.user._id },
       { balance: Number(req.user.balance - total) },
+      { new: true }
+    );
+
+    //update receiver balance
+    await User.findOneAndUpdate(
+      { _id: Receiver._id },
+      { balance: Number(req.user.balance) + Number(total) },
       { new: true }
     );
 
@@ -104,16 +112,25 @@ const cashIn = async (req, res, next) => {
       throw error;
     }
 
-    const newTransaction = new SendMoney({
+    //create transaction
+    const newTransaction = new CashIn({
       sender: _id,
       receiver: Receiver._id,
       amount: amount,
+      agent: _id
     });
 
-    // eslint-disable-next-line no-unused-vars
-    const UpdateSenderBalance = await User.findOneAndUpdate(
+    //update sender balance
+    await User.findOneAndUpdate(
       { _id: req.user._id },
       { balance: Number(req.user.balance - amount) },
+      { new: true }
+    );
+
+    //update receiver balance
+    await User.findOneAndUpdate(
+      { _id: Receiver._id },
+      { balance: Number(Receiver.balance) + Number(amount) },
       { new: true }
     );
 

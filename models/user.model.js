@@ -58,7 +58,7 @@ const userSchema = new mongoose.Schema(
 userSchema.pre("save", function (next) {
   if (this.isNew) {
     this.balance = this.kind === "AGENT" ? 100000 : 40;
-    this.status = this.kind === "AGENT" ? "ACTIVE" : "PENDING";
+    this.status = this.kind === "AGENT" ? "PENDING" : "ACTIVE";
   }
   next();
 });
