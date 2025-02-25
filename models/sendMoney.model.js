@@ -2,13 +2,13 @@ import mongoose from "mongoose";
 
 const sendMoneySchema = new mongoose.Schema({
   sender: {
-    user_id: mongoose.Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: [true, "Sender is required"],
     index: true,
   },
   receiver: {
-    user_id: mongoose.Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: [true, "Receiver is required"],
     index: true,
@@ -21,7 +21,7 @@ const sendMoneySchema = new mongoose.Schema({
   send_amount: {
     type: Number,
     required: [true, "Send amount is required"],
-    min: [10, "Send amount must be at least 10"],
+    min: [50, "Minimum Send Amount is 50"],
   },
   fee: {
     type: Number,
@@ -29,4 +29,4 @@ const sendMoneySchema = new mongoose.Schema({
   },
 });
 
-export default sendMoneySchema;
+export default mongoose.model("SendMoney", sendMoneySchema);

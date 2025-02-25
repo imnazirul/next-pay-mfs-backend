@@ -15,11 +15,10 @@ const Authorize = async (req, res, next) => {
 
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    const user = User.findOne(decoded.email);
+    const user = await User.findOne({email: decoded.email});
     if (!user) return res.status(401).json({ message: "Unauthorized" });
 
     req.user = user;
-
     next();
   } catch (err) {
     res.status(401).json({ message: "Unauthorized", error: err.message });
