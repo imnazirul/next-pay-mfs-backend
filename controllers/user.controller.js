@@ -126,7 +126,7 @@ const PatchUser = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: "Agent Updated Successfully",
+      message: "User Updated Successfully",
       data: user,
     });
   } catch (error) {
