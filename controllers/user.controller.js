@@ -18,6 +18,20 @@ const GetAgents = async (req, res, next) => {
   }
 };
 
+//get agent
+const GetAgent = async(req,res,next)=>{
+  try{
+    const {id} = req.params
+    const agent = await User.findOne({_id: id, kind: "AGENT"}).select("-pin -token")
+    if(!agent){
+      return res.status(404).json({success:false, message: "Agent Not Found"})
+    }
+    res.status(200).json({success:true, message: "Agent", data: agent})
+  }catch(error){
+    next(error)
+  }
+}
+
 //delete agent
 const DelAgent = async (req, res, next) => {
   try {
@@ -81,6 +95,19 @@ const GetUsers = async (req, res, next) => {
   }
 };
 
+const GetUser = async(req, res, next) =>{
+  try{
+    const {id} = req.params
+    const user = await User.findOne({_id: id, kind: "USER"}).select("-pin -token")
+    if(!user){
+      return res.status(404).json({success:false, message: "User Not Found"})
+    }
+    res.status(200).json({success:true, message: "User", data: user})
+  }catch(error){
+    next(error)
+  }
+}
+
 const PatchUser = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -124,4 +151,4 @@ const DelUser = async (req, res, next) => {
   }
 };
 
-export { GetAgents, GetUsers, DelUser, DelAgent, PatchAgent, PatchUser };
+export { GetAgents, GetUsers, DelUser, DelAgent, PatchAgent, PatchUser, GetAgent, GetUser };
