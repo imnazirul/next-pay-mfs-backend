@@ -5,6 +5,7 @@ import errorMiddleware from "./middleware/error.middleware.js";
 import connectToDatabase from "./database/mongodb.js";
 import TransactionRouter from "./routes/transaction.routes.js";
 import UserRouter from "./routes/user.routes.js";
+import AgentRouter from "./routes/agent.routes.js";
 const app = express();
 
 
@@ -12,9 +13,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
+app.use("/api/v1/users", UserRouter)
+app.use("/api/v1/agents", AgentRouter)
 app.use("/api/v1/transactions", TransactionRouter)
 app.use("/api/v1/auth", authRouter)
-app.use("/api/v1/users", UserRouter)
 app.use(errorMiddleware)
 
 app.get("/", (req, res) => {

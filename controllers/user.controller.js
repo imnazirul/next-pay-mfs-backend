@@ -4,15 +4,15 @@ import User from "../models/user.model.js";
 //get agents
 const GetAgents = async (req, res, next) => {
   try {
-    const { mobile } = req.query; // Get mobile from query parameters
+    const { mobile } = req.query;
     let query = { kind: "AGENT" };
     if (mobile) {
-      query.mobile = { $regex: mobile, $options: "i" }; // Case-insensitive search
+      query.mobile = { $regex: mobile, $options: "i" }; 
     }
-    const Users = await User.find(query).lean();
+    const agent = await User.find(query).select("-pin -token").lean();
     res
       .status(200)
-      .json({ success: true, message: "All Agents For Admin", data: Users });
+      .json({ success: true, message: "All Agents For Admin", data: agent });
   } catch (error) {
     next(error);
   }
@@ -86,7 +86,7 @@ const GetUsers = async (req, res, next) => {
     if (mobile) {
       query.mobile = { $regex: mobile, $options: "i" }; // Case-insensitive search
     }
-    const Users = await User.find(query).lean();
+    const Users = await User.find(query).select("-pin -token").lean();
     res
       .status(200)
       .json({ success: true, message: "All Users For Admin", data: Users });
