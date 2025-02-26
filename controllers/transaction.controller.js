@@ -8,8 +8,17 @@ const PostTransaction = async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const { receiver_mobile, kind, total, amount, fee, pin } = req.body;
+    const { receiver_mobile : UserMobile, kind, total, amount, fee, pin } = req.body;
     const { _id, mobile } = req.user;
+
+    let receiver_mobile = UserMobile
+
+    if ( receiver_mobile.startsWith("0")) {
+      receiver_mobile = `+88${UserMobile}`;
+    }
+    if (receiver_mobile.startsWith("1")) {
+      receiver_mobile = `+880${UserMobile}`;
+    }
 
     //CHECK IF MOBILE SAME AS USER
     if (receiver_mobile == mobile) {

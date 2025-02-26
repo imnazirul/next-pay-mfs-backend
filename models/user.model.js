@@ -39,6 +39,7 @@ const userSchema = new mongoose.Schema(
     pin: {
       type: String,
       required: [true, "PIN is required"],
+      minLength: 5
     },
     token: {
       type: String,
