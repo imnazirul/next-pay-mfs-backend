@@ -8,12 +8,19 @@ const PostTransaction = async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const { receiver_mobile : UserMobile, kind, total, amount, fee, pin } = req.body;
+    const {
+      receiver_mobile: UserMobile,
+      kind,
+      total,
+      amount,
+      fee,
+      pin,
+    } = req.body;
     const { _id, mobile } = req.user;
 
-    let receiver_mobile = UserMobile
+    let receiver_mobile = UserMobile;
 
-    if ( receiver_mobile.startsWith("0")) {
+    if (receiver_mobile.startsWith("0")) {
       receiver_mobile = `+88${UserMobile}`;
     }
     if (receiver_mobile.startsWith("1")) {
@@ -65,7 +72,7 @@ const PostTransaction = async (req, res, next) => {
         total: total,
         amount: amount,
         fee: fee,
-        kind: kind
+        kind: kind,
       });
 
       //update sender balance
@@ -129,7 +136,7 @@ const PostTransaction = async (req, res, next) => {
         to: Receiver._id,
         amount: amount,
         total: total,
-        kind: kind
+        kind: kind,
       });
 
       //update sender balance
@@ -199,7 +206,7 @@ const PostTransaction = async (req, res, next) => {
         total: total,
         amount: amount,
         fee: fee,
-        kind: kind
+        kind: kind,
       });
 
       //update sender balance
@@ -248,8 +255,8 @@ const GetTransactions = async (req, res, next) => {
   try {
     const { _id } = req.user;
     const transactions = await Transaction.find({
-        $or: [{ from: _id }, { to: _id }],
-      }).limit(100)
+      $or: [{ from: _id }, { to: _id }],
+    }).limit(100);
 
     res.status(200).json({
       count: transactions.length,
@@ -262,27 +269,32 @@ const GetTransactions = async (req, res, next) => {
   }
 };
 
-
 const GetTransaction = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const transaction = await Transaction.findById({id})
 
-    res.status(200).json({
-      success: true,
-      message: "Transaction Details",
-      data: transaction,
-    });
+    if (id) {
+      const transaction = await Transaction.findById(id.toString());
+
+      const receiver = await User.findById(transaction?.to);
+      const sender = await User.findById(transaction?.from);
+
+      res.status(200).json({
+        success: true,
+        message: "Transaction Details",
+        data: transaction,
+        from: sender,
+        to: receiver,
+      });
+    }
   } catch (error) {
     next(error);
   }
 };
 
-
 const GetAllTransactions = async (req, res, next) => {
   try {
-
-    const transactions = await Transaction.find()
+    const transactions = await Transaction.find();
 
     res.status(200).json({
       count: transactions.length,

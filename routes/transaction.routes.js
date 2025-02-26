@@ -9,7 +9,7 @@ const TransactionRouter = Router()
 //common
 TransactionRouter.post("/", Authorize, PostTransaction)
 TransactionRouter.get("/", Authorize, GetTransactions)
-TransactionRouter.get("/transaction/:id", Authorize, GetTransaction)
+TransactionRouter.get("/transactions/:id", Authorize, GetTransaction)
 
 //agent routes
 TransactionRouter.post("/balance-requests", AgentAuthorize, RequestBalance)
