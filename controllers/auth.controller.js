@@ -10,6 +10,10 @@ const signUp = async (req, res, next) => {
   try {
     const { name, email, mobile, kind, pin, nid } = req.body;
 
+    if(!pin){
+      return res.status(404).json({message: "Invalid PIN"})
+    }
+
     if (!mobile.startsWith("+880")) {
       const error = new Error("Please Enter Mobile Number With Country Code");
       error.statusCode = 402;
@@ -69,6 +73,7 @@ const signIn = async (req, res, next) => {
     if(!pin){
       return res.status(404).json({message: "Invalid PIN"})
     }
+
     let identifiers = identifier;
     if (!identifier.includes("@") && identifier.startsWith("0")) {
       identifiers = `+88${identifier}`;
