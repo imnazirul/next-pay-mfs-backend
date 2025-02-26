@@ -10,10 +10,12 @@ import cors from "cors"
 const app = express();
 
 
+
 app.use(cors())
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+await connectToDatabase()
 
 app.use("/api/v1/users", UserRouter)
 app.use("/api/v1/agents", AgentRouter)
@@ -30,7 +32,6 @@ app.get("/", (req, res) => {
 app.listen(PORT, async() => {
   console.log(`Server is running on port http://localhost:${PORT}`);
 
-  await connectToDatabase()
 })
 
 export default app;
