@@ -6,9 +6,11 @@ import connectToDatabase from "./database/mongodb.js";
 import TransactionRouter from "./routes/transaction.routes.js";
 import UserRouter from "./routes/user.routes.js";
 import AgentRouter from "./routes/agent.routes.js";
+import cors from "cors"
 const app = express();
 
 
+app.use(cors())
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

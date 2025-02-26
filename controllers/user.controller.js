@@ -151,4 +151,18 @@ const DelUser = async (req, res, next) => {
   }
 };
 
-export { GetAgents, GetUsers, DelUser, DelAgent, PatchAgent, PatchUser, GetAgent, GetUser };
+const GetLoggedInUser = async(req, res, next)=>{
+try {
+  const {_id} = req.user
+  const user = await User.findById(_id).select("-pin -token")
+
+  if(!user){
+    return res.status(404).json({success: false, message: "User Not Found"})
+  }
+  res.status(200).json({success:true, data: user})
+} catch (error) {
+  next(error)
+}
+}
+
+export { GetAgents, GetUsers, DelUser, DelAgent, PatchAgent, PatchUser, GetAgent, GetUser, GetLoggedInUser };

@@ -33,6 +33,11 @@ const signUp = async (req, res, next) => {
     const token = jwt.sign({ email: newUser.email }, JWT_SECRET, {
       expiresIn: JWT_EXPIRES_IN,
     });
+    await User.findOneAndUpdate(
+      { _id: newUser._id },
+      { token: token },
+      { new: true }
+    ).select("-pin")
 
     await session.commitTransaction();
     session.endSession();
