@@ -304,6 +304,34 @@ const GetUserTransactions = async (req, res, next) => {
   }
 };
 
+const GetAgentTransactions = async (req, res, next) => {
+  try {
+    const { _id } = req.user;
+    const [cashInTransactions, cashOutTransactions] =
+      await Promise.all([
+        CashIn.find({ agent: _id }).lean(),
+        CashOut.find({ agent: _id }).lean(),
+      ]);
+
+    let Transactions = [
+      ...cashInTransactions,
+      ...cashOutTransactions,
+    ];
+    Transactions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    Transactions = Transactions.slice(0, 100);
+
+    res.status(200).json({
+      count: Transactions.length,
+      success: true,
+      message: "All Transactions for Your Account",
+      data: Transactions,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const GetAllTransactions = async (req, res, next) => {
   try {
     const [sendMoneyTransactions, cashInTransactions, cashOutTransactions] =
@@ -455,5 +483,6 @@ export {
   RequestBalance,
   PatchRequestBalance,
   GetBalanceRequest,
-  GetUserRequestBalance
+  GetUserRequestBalance,
+  GetAgentTransactions
 };
