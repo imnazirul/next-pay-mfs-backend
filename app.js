@@ -14,8 +14,8 @@ const app = express();
 app.use(cors())
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 await connectToDatabase()
+
 
 app.use("/api/v1/users", UserRouter)
 app.use("/api/v1/agents", AgentRouter)
